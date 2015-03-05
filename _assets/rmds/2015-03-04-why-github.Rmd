@@ -1,11 +1,9 @@
 ---
-title: "Test post"
-output:
-  html_document:
-    self_contained: no
+title: "Why GitHub?"
+output: html_document
 ---
 
-This is a test post. Future posts may have some R code. If so, it will look like this:
+Why GitHub?  I can host my site for free. Also, I can author in Markdown (or RMarkdown) with code highlighted as below.
 
 ```{r}
 summary(cars)
