@@ -11,7 +11,7 @@ github_username:  bateyt
 markdown: kramdown
 
 # Syntax highlighter
-highlighter: rouge
+highlighter: pygments
 
 # Set encoding
 encoding: utf-8
