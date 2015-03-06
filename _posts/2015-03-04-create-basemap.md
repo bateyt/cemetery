@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Create a basemap and layer with shapfile"
+title: "Create a basemap and layer with shapefile"
 date: 2015-03-04
 ---
 
