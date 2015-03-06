@@ -67,15 +67,39 @@ img {
 
 
 <p>For any cemetery project, it may be useful to have on hand a map of the area. We can easily produce a basemap onto which we can later plot spatial data on a cemetery (e.g., boundaries, locations of plots). R’s ability to handle and visualize spatial data have grown rapidly over the years. Below, I present an incredibly simple way to produce a map layer in R. For more, see Roger Bivand and colleague’s <a href="http://www.springer.com/us/book/9781461476177"><em>Applied Spatial Analysis with R</em></a> (2013).</p>
-<p>First, I will load some required packages.</p>
+<p>While the Base R installation comes with some capabilities for handling spatial data, users continue contributing to an ever-growing list of packages for handling general, and specific, spatial problems. In fact, many of these packages can be installed together from one of the Comprehensive R Archive Network’s (CRAN) “<a href="http://cran.r-project.org/web/views/">task views</a>,” which are groups of packages related to specific analytical problems or disciplines. For example, one may want to check out the <a href="http://cran.r-project.org/web/views/Spatial.html">Spatial</a> and <a href="http://cran.r-project.org/web/views/SpatioTemporal.html">SpatioTemporal</a> task views.</p>
 <pre class="r"><code># Load required libraries
 spatpack &lt;- c(&quot;ggplot2&quot;, &quot;ggmap&quot;, &quot;ggthemr&quot;, &quot;rgdal&quot;, &quot;scales&quot;, &quot;dplyr&quot;, &quot;Cairo&quot;, &quot;shiny&quot;, &quot;ggvis&quot;, &quot;maptools&quot;, &quot;sp&quot;, &quot;spatial&quot;)
 sapply(spatpack, require, character.only = TRUE)
+
+# Allow use of the `gpclib` package, if installed
 gpclibPermit()</code></pre>
-<p>I hope that worked. Next I’ll use <code>ggmap</code> to get our map layer.</p>
-<pre class="r"><code>or.map &lt;- get_map(location = &quot;Oregon&quot;, source = &quot;google&quot;, maptype = &quot;terrain&quot;, zoom = 6)
+<p>Now that that those packages have been loaded, I’ll use <code>ggmap</code> to get our map layer.</p>
+<pre class="r"><code># The get_map function retrieves the map, which is passed to ggmap
+or.map &lt;- get_map(location = &quot;Oregon&quot;, source = &quot;google&quot;, maptype = &quot;terrain&quot;, zoom = 6)
 ggmap(or.map)</code></pre>
 <p><img src="2015-03-04-create-basemap_files/figure-html/unnamed-chunk-2-1.png" /></p>
+<p>This is great, but for a cemetery project, there’s a good chance one will want to plot a shapefile onto a basemap layer. Just as an example, we could plot Oregon census tracts onto our basemap above. First one would need to get the <a href="https://www.census.gov/geo/maps-data/data/tiger-line.html">shapefile data provided by the U.S. Census Bureau</a>. After that, we can read the shapefile into R using the <code>readOGR()</code> function from the <code>rgdal</code> package.</p>
+<pre class="r"><code># File location (&quot;dsn&quot;) and name (&quot;layer&quot;) must be specified.
+orCens &lt;- readOGR(dsn = &quot;C:/Users/Trey/Documents/R/spatial/tl_2014_41_tract&quot;, layer = &quot;tl_2014_41_tract&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;C:/Users/Trey/Documents/R/spatial/tl_2014_41_tract&quot;, layer: &quot;tl_2014_41_tract&quot;
+## with 834 features and 12 fields
+## Feature type: wkbPolygon with 2 dimensions</code></pre>
+<pre class="r"><code># View the projection information
+proj4string(orCens)</code></pre>
+<pre><code>## [1] &quot;+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0&quot;</code></pre>
+<p>Massage the shapefile some, then transform into a format to be read by <code>ggplot2</code> and <code>ggmap</code>.</p>
+<pre class="r"><code>orCens.wsg84 &lt;- spTransform(orCens, CRS(&quot;+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs&quot;))
+data &lt;- fortify(orCens.wsg84)</code></pre>
+<pre><code>## Regions defined for each Polygons</code></pre>
+<p>First, let’s map this using <code>ggplot2</code>.</p>
+<pre class="r"><code>ggplot() + geom_polygon(aes(x = long, y = lat, group = group), data = data, color = &quot;black&quot;, fill = &quot;black&quot;, alpha = 0.3, size = 0.4)</code></pre>
+<p><img src="2015-03-04-create-basemap_files/figure-html/unnamed-chunk-5-1.png" /></p>
+<p>Looks good, but I really want to see this shape layered on top of my basemap. Time for that.</p>
+<pre class="r"><code>ggmap(or.map) + geom_polygon(aes(x = long, y = lat, group = group), data = data, color = &quot;black&quot;, fill = &quot;black&quot;, alpha = 0.3, size = 0.4)</code></pre>
+<p><img src="2015-03-04-create-basemap_files/figure-html/unnamed-chunk-6-1.png" /></p>
+<p>It didn’t take a whole lot of code to produce this post. Nice!</p>
 
 
 </div>
